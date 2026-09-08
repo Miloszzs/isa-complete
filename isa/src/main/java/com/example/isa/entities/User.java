@@ -1,22 +1,27 @@
 package com.example.isa.entities;
 
-import org.springframework.data.annotation.Id;
 import jakarta.persistence.*;
 import lombok.Data;
+
 @Entity
-@Table(name="users")
+@Table(name = "users")
 @Data
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "userId")
     private Integer id;
 
-    @Column(name = "first_name")
+    @Column(name = "firstName")
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "lastName")
     private String lastName;
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "contactNumber")
+    private String contactNumber;
 }

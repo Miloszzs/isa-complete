@@ -16,7 +16,7 @@ export default function UserCreate() {
     return (
         <>
             <Row className="mb-3">
-                <Col md={6}>
+                <Col md="6">
                     <input type="text" className="form-control" placeholder="First Name" {...register("firstName", {
                         required: "Ime je obavezno",
                         maxLength: 50,
@@ -26,7 +26,7 @@ export default function UserCreate() {
                         <span className="text-danger">{errors.firstName.message}</span>
                     )}
                 </Col>
-                <Col md={6}>
+                <Col md="6">
                     <input type="text" className="form-control" placeholder="Last Name" {...register("lastName", {
                         required: "Prezime je obavezno",
                         maxLength: 50,
@@ -38,7 +38,7 @@ export default function UserCreate() {
                 </Col>
             </Row>
             <Row className="mb-3">
-                <Col md={6}>
+                <Col md="6">
                     <input type="email" className="form-control" placeholder="Email" {...register("email", {
                         required: "Mejl je obavezan",
                     })}/>
@@ -46,17 +46,19 @@ export default function UserCreate() {
                         <span className="text-danger">{errors.email.message}</span>
                     )}
                 </Col>
-                <Col md={6}>
-                    <input type="text" className="form-control" placeholder="Phone number" {...register("contactNumber", {
-                        required: "Broj telefona je obavezan",
-                        maxLength: 15,
-                        minLength: 8,
-                        validate: (value) => {
-                            if (!/^[0-9]+$/.test(value)) {
-                                return "Netacan broj telefona";
-                            }
-                        }
-                    })}/>
+                <Col md="6">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Phone number"
+                        {...register("contactNumber", {
+                            required: "Broj telefona je obavezan",
+                            pattern: {
+                                value: /^[0-9]{9,13}$/,
+                                message: "Broj telefona mora imati od 9 do 13 cifara",
+                            },
+                        })}
+                    />
                     {errors && errors.contactNumber && (
                         <span className="text-danger">{errors.contactNumber.message}</span>
                     )}

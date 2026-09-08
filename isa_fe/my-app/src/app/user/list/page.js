@@ -2,56 +2,51 @@
 
 import {useEffect, useState} from "react";
 import useListData from "@/hooks/useListData";
-import {Spinner} from "reactstrap";
 import DataTable from "react-data-table-component";
+import {Spinner} from "reactstrap";
 
-export const tableColumns = [
-    {
-        name: 'First Name',
-        selector: (row) => `${row.firstName}`,
-        sortable: false,
-    },
-    {
-        name: 'Last Name',
-        selector: (row) => `${row.lastName}`,
-        sortable: false,
-    },
-]
+const columns = [
+    {name: "First Name", selector: row => row.firstName},
+    {name: "Last Name", selector: row => row.lastName},
+    {name: "Email", selector: row => row.email},
+    {name: "Phone", selector: row => row.contactNumber ?? ""},
+];
 
-export default function UserList(){
+export default function UserList() {
     const [pageNumber, setPageNumber] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    const {getData, loading, data} = useListData(`http://localhost:8080/user/get-user-page-list?pageNumber=${pageNumber-1}&pageSize=${pageSize}`);
+    const {getData, loading, data, error} = useListData();
 
     useEffect(() => {
-        getData(`http://localhost:8080/user/get-user-page-list?pageNumber=${pageNumber-1}&pageSize=${pageSize}`);
-    }, [pageSize, pageNumber]);
+        getData("/user/get-user-page-list", {
+            pageNumber: pageNumber - 1,
+            pageSize: pageSize,
+        });
+    }, [getData, pageNumber, pageSize]);
 
-    const handlePageChange = async (page) => {
-        setPageNumber(page);
+    if (error) {
+        return <div className="alert alert-danger">
+            Greska pri ucitavanju korisnika.
+        </div>;
     }
 
-    const handlePerRowsChange = async (newPerPage, page) => {
-        setPageNumber(page);
-        setPageSize(newPerPage);
-    };
-
     return (
-        <>
-            {data != null && <DataTable data = {data.users}
-                columns={tableColumns}
-                striped={true}
-                noHeader={true}
-                pagination
-                paginationServer
-                progressPending={loading}
-                paginationTotalRows={data.totalElements}
-                onChangePage={handlePageChange}
-                onChangeRowsPerPage={handlePerRowsChange}
-                progressComponent={<Spinner color="danger"> Ucitavanje...</Spinner>}
-                highlightOnHover
-            />}
-        </>
+        <DataTable
+            data={data?.users ?? []}
+            columns={columns}
+            striped
+            pagination
+            paginationServer
+            progressPending={loading}
+            paginationTotalRows={data?.totalElements ?? 0}
+            onChangePage={setPageNumber}
+            onChangeRowsPerPage={(size, page) => {
+                setPageSize(size);
+                setPageNumber(page);
+            }}
+            progressComponent={<Spinner color="danger" />}
+            highlightOnHover
+        />
     );
 }

@@ -1,15 +1,27 @@
 import {useCallback, useState} from "react";
-import axios from "axios";
+import {get} from "@/core/httpClient";
 
-const useListData = (url) => {
+const useListData = () => {
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState({});
-    const getData = useCallback(async (url) => {
-        setLoading(true);
-        let res = await axios.get(url);
-        setData(res.data);
-        setLoading(false);
-    }, [url]);
-    return {getData, loading, data};
-}
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(null);
+
+    const getData = useCallback(async (url, params = {}) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await get(url, params);
+            setData(response.data);
+        } catch (err) {
+            console.error("GET request failed:", err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return {getData, loading, data, error};
+};
+
 export default useListData;

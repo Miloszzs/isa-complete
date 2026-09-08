@@ -15,34 +15,45 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("/user")
 @RequiredArgsConstructor
-@CrossOrigin
-
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
+
     private final IUserRepository userRepository;
 
-    @GetMapping("get-first-name")
-    public String getFirstName() {return "Milos"; };
-
-    @GetMapping("get-user-list")
-    public List<UserModel> getUserList() {return UserMapper.toModelList(userRepository.findAll()); };
-
-    @GetMapping("get-user-page-list")
-    public UserPageModel getUserPageList(Integer pageNumber, Integer pageSize){
-        return UserMapper.toModelPagedList(userRepository.findAll(PageRequest.of(pageNumber, pageSize)));
+    @GetMapping("/get-user-list")
+    public List<UserModel> getUserList() {
+        return UserMapper.toModelList(userRepository.findAll());
     }
-    @PostMapping("create-user")
-    public boolean createUser(String firstName, String lastName) {return true ;}
 
-    @PostMapping("create-user-body")
-    public ResponseEntity<?> createUserBody(@RequestBody @Valid UserModel userModel, BindingResult result) {
-        if (result.hasErrors()){
-            return new ResponseEntity<>("Neuspesno registrovan", HttpStatus.INTERNAL_SERVER_ERROR);
+    @GetMapping("/get-user-page-list")
+    public UserPageModel getUserPageList(
+            @RequestParam(defaultValue = "0") Integer pageNumber,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+
+        return UserMapper.toModelPagedList(
+                userRepository.findAll(
+                        PageRequest.of(pageNumber, pageSize)
+                )
+        );
+    }
+
+    @PostMapping("/create-user-body")
+    public ResponseEntity<?> createUser(
+            @RequestBody @Valid UserModel model,
+            BindingResult result) {
+
+        if (result.hasErrors()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Neispravni podaci korisnika");
         }
-        var entity = UserMapper.toEntity(userModel);
-        userRepository.save(entity);
 
-        return new ResponseEntity<UserModel>(userModel, HttpStatus.CREATED);
+        var saved = userRepository.save(UserMapper.toEntity(model));
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(UserMapper.toModel(saved));
     }
 }
