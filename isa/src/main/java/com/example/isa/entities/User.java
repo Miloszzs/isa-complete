@@ -2,6 +2,11 @@ package com.example.isa.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -24,4 +29,14 @@ public class User {
 
     @Column(name = "contactNumber")
     private String contactNumber;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "userroles",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "roleId")
+    )
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Role> roles = new HashSet<>();
 }
