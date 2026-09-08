@@ -15,3 +15,11 @@ export const get = async (url, params = {}) => {
 export const post = async (url, data) => {
     return Axios.post(url, data);
 };
+
+export const put = async (url, data) => {
+    return Axios.put(url, data);
+};
+
+export const remove = async (url) => {
+    return Axios.delete(url);
+};

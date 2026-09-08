@@ -5,21 +5,26 @@ import com.example.isa.models.UserModel;
 import com.example.isa.models.UserPageModel;
 import org.springframework.data.domain.Page;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserMapper {
 
     public static User toEntity(UserModel model) {
+
         User user = new User();
+
         user.setId(model.getId());
         user.setFirstName(model.getFirstName());
         user.setLastName(model.getLastName());
         user.setEmail(model.getEmail());
         user.setContactNumber(model.getContactNumber());
+
         return user;
     }
 
     public static UserModel toModel(User entity) {
+
         return UserModel.builder()
                 .id(entity.getId())
                 .firstName(entity.getFirstName())
@@ -30,16 +35,22 @@ public class UserMapper {
     }
 
     public static List<UserModel> toModelList(List<User> entities) {
-        return entities.stream()
-                .map(UserMapper::toModel)
-                .toList();
+
+        var list = new ArrayList<UserModel>();
+
+        for (var entity : entities) {
+            list.add(toModel(entity));
+        }
+
+        return list;
     }
 
-    public static UserPageModel toModelPagedList(Page<User> page) {
+    public static UserPageModel toModelPagedList(Page<User> pageEntity) {
+
         return UserPageModel.builder()
-                .users(toModelList(page.getContent()))
-                .totalPages(page.getTotalPages())
-                .totalElements(page.getTotalElements())
+                .users(toModelList(pageEntity.getContent()))
+                .totalPages(pageEntity.getTotalPages())
+                .totalElements(pageEntity.getTotalElements())
                 .build();
     }
 }

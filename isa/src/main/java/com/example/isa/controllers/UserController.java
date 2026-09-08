@@ -39,6 +39,22 @@ public class UserController {
         );
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Integer id) {
+
+        var user = userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Korisnik nije pronadjen");
+        }
+
+        return ResponseEntity.ok(
+                UserMapper.toModel(user.get())
+        );
+    }
+
     @PostMapping("/create-user-body")
     public ResponseEntity<?> createUser(
             @RequestBody @Valid UserModel model,
@@ -56,4 +72,55 @@ public class UserController {
                 .status(HttpStatus.CREATED)
                 .body(UserMapper.toModel(saved));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable Integer id,
+            @RequestBody @Valid UserModel model,
+            BindingResult result) {
+
+        if (result.hasErrors()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Neispravni podaci korisnika");
+        }
+
+        var existingUser = userRepository.findById(id);
+
+        if (existingUser.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Korisnik nije pronadjen");
+        }
+
+        var user = existingUser.get();
+
+        user.setFirstName(model.getFirstName());
+        user.setLastName(model.getLastName());
+        user.setEmail(model.getEmail());
+        user.setContactNumber(model.getContactNumber());
+
+        var savedUser = userRepository.save(user);
+
+        return ResponseEntity.ok(
+                UserMapper.toModel(savedUser)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Korisnik nije pronadjen");
+        }
+
+        userRepository.deleteById(id);
+
+        return ResponseEntity.ok(
+                "Korisnik je uspesno obrisan"
+        );
+    }
+
 }
