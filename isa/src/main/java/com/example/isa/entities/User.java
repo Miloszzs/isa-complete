@@ -30,6 +30,9 @@ public class User {
     @Column(name = "contactNumber")
     private String contactNumber;
 
+    @Column(name = "password", nullable = false)
+    private String password;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "userroles",

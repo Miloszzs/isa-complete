@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder
@@ -29,4 +30,12 @@ public class UserModel {
     @NotBlank(message = "Broj telefona je obavezan")
     @ContactNumberConstraint
     private String contactNumber;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Size(
+            min = 8,
+            max = 72,
+            message = "Lozinka mora imati najmanje 8 karaktera"
+    )
+    private String password;
 }
