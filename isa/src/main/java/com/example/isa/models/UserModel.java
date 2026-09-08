@@ -1,5 +1,6 @@
 package com.example.isa.models;
 
+import com.example.isa.validator.ContactNumberConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
