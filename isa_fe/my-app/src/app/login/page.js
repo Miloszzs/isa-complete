@@ -48,9 +48,16 @@ export default function Login() {
             resetField("password");
 
             if (roles.includes("ADMIN")) {
+
                 router.replace("/admin");
+
+            } else if (roles.includes("CUSTOMER")) {
+
+                router.replace("/customer");
+
             } else {
-                setSuccessMessage(`Uspešno ste prijavljeni kao ${email}.`);
+
+                router.replace("/");
             }
         } catch (error) {
             if (error.response?.status === 401) {

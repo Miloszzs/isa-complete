@@ -12,22 +12,26 @@ export default function AdminPage() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
 
-    const [name, setName] = useState("");
-    const [categoryIds, setCategoryIds] = useState([]);
-    const [editingId, setEditingId] = useState(null);
+    const [productName, setProductName] = useState("");
+    const [selectedCategories, setSelectedCategories] = useState([]);
 
+    const [editingId, setEditingId] = useState(null);
     const [adminUserId, setAdminUserId] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
+    // =====================================================
+    // PROVERA ADMIN KORISNIKA
+    // =====================================================
+
     useEffect(() => {
 
-        const storedUser = sessionStorage.getItem("user");
         const token = sessionStorage.getItem("accessToken");
+        const storedUser = sessionStorage.getItem("user");
 
-        if (!storedUser || !token) {
+        if (!token || !storedUser) {
             router.replace("/login");
             return;
         }
@@ -49,6 +53,11 @@ export default function AdminPage() {
 
     }, [router]);
 
+
+    // =====================================================
+    // UCITAVANJE PODATAKA
+    // =====================================================
+
     const loadData = async () => {
 
         try {
@@ -68,20 +77,26 @@ export default function AdminPage() {
         } catch (error) {
 
             console.error(error);
-            setError("Greska pri ucitavanju podataka.");
+            setError("Nije moguce ucitati podatke.");
 
         } finally {
             setLoading(false);
         }
     };
 
+
     useEffect(() => {
 
-        if (adminUserId) {
+        if (adminUserId !== null) {
             loadData();
         }
 
     }, [adminUserId]);
+
+
+    // =====================================================
+    // MAPA KATEGORIJA
+    // =====================================================
 
     const categoryMap = useMemo(() => {
 
@@ -94,23 +109,41 @@ export default function AdminPage() {
 
     }, [categories]);
 
+
+    // =====================================================
+    // FORMA
+    // =====================================================
+
     const resetForm = () => {
-        setName("");
-        setCategoryIds([]);
+
+        setProductName("");
+        setSelectedCategories([]);
         setEditingId(null);
     };
 
-    const handleCategoryChange = (id) => {
 
-        setCategoryIds(current => {
+    const handleCategoryChange = (categoryId) => {
 
-            if (current.includes(id)) {
-                return current.filter(categoryId => categoryId !== id);
+        setSelectedCategories(current => {
+
+            if (current.includes(categoryId)) {
+
+                return current.filter(
+                    id => id !== categoryId
+                );
             }
 
-            return [...current, id];
+            return [
+                ...current,
+                categoryId
+            ];
         });
     };
+
+
+    // =====================================================
+    // CREATE / UPDATE
+    // =====================================================
 
     const handleSubmit = async (event) => {
 
@@ -119,15 +152,19 @@ export default function AdminPage() {
         setMessage("");
         setError("");
 
-        if (!name.trim()) {
+        if (!productName.trim()) {
+
             setError("Naziv proizvoda je obavezan.");
             return;
         }
 
-        const body = {
-            name: name.trim(),
+        const productData = {
+
+            name: productName.trim(),
+
             userId: adminUserId,
-            categoryIds: categoryIds
+
+            categoryIds: selectedCategories
         };
 
         try {
@@ -136,22 +173,27 @@ export default function AdminPage() {
 
                 await post(
                     "/product/create-product-body",
-                    body
+                    productData
                 );
 
-                setMessage("Proizvod je uspesno dodat.");
+                setMessage(
+                    "Proizvod je uspesno dodat."
+                );
 
             } else {
 
                 await put(
                     `/product/${editingId}`,
-                    body
+                    productData
                 );
 
-                setMessage("Proizvod je uspesno izmenjen.");
+                setMessage(
+                    "Proizvod je uspesno izmenjen."
+                );
             }
 
             resetForm();
+
             await loadData();
 
         } catch (error) {
@@ -159,18 +201,35 @@ export default function AdminPage() {
             console.error(error);
 
             if (error.response?.status === 403) {
-                setError("Nemate dozvolu za ovu operaciju.");
+
+                setError(
+                    "Nemate dozvolu za ovu operaciju."
+                );
+
             } else {
-                setError("Operacija nad proizvodom nije uspela.");
+
+                setError(
+                    error.response?.data ||
+                    "Operacija nije uspela."
+                );
             }
         }
     };
 
+
+    // =====================================================
+    // EDIT
+    // =====================================================
+
     const handleEdit = (product) => {
 
         setEditingId(product.id);
-        setName(product.name);
-        setCategoryIds(product.categoryIds ?? []);
+
+        setProductName(product.name);
+
+        setSelectedCategories(
+            product.categoryIds ?? []
+        );
 
         window.scrollTo({
             top: 0,
@@ -178,10 +237,15 @@ export default function AdminPage() {
         });
     };
 
-    const handleDelete = async (productId) => {
+
+    // =====================================================
+    // DELETE
+    // =====================================================
+
+    const handleDelete = async (product) => {
 
         const confirmed = window.confirm(
-            "Da li ste sigurni da zelite da obrisete proizvod?"
+            `Da li zelite da obrisete proizvod "${product.name}"?`
         );
 
         if (!confirmed) {
@@ -193,21 +257,35 @@ export default function AdminPage() {
             setMessage("");
             setError("");
 
-            await remove(`/product/${productId}`);
+            await remove(
+                `/product/${product.id}`
+            );
 
-            if (editingId === productId) {
+            setMessage(
+                "Proizvod je uspesno obrisan."
+            );
+
+            if (editingId === product.id) {
                 resetForm();
             }
 
-            setMessage("Proizvod je uspesno obrisan.");
             await loadData();
 
         } catch (error) {
 
             console.error(error);
-            setError("Brisanje proizvoda nije uspelo.");
+
+            setError(
+                error.response?.data ||
+                "Brisanje proizvoda nije uspelo."
+            );
         }
     };
+
+
+    // =====================================================
+    // LOGOUT
+    // =====================================================
 
     const handleLogout = () => {
 
@@ -217,10 +295,17 @@ export default function AdminPage() {
         router.replace("/login");
     };
 
+
+    // =====================================================
+    // HTML
+    // =====================================================
+
     return (
+
         <main>
 
             <nav className="navbar navbar-dark bg-dark">
+
                 <div className="container">
 
                     <Link
@@ -231,6 +316,13 @@ export default function AdminPage() {
                     </Link>
 
                     <div className="d-flex gap-2">
+
+                        <Link
+                            href="/admin/categories"
+                            className="btn btn-outline-light"
+                        >
+                            Kategorije
+                        </Link>
 
                         <Link
                             href="/"
@@ -247,6 +339,7 @@ export default function AdminPage() {
                         </Link>
 
                         <button
+                            type="button"
                             className="btn btn-danger"
                             onClick={handleLogout}
                         >
@@ -256,7 +349,9 @@ export default function AdminPage() {
                     </div>
 
                 </div>
+
             </nav>
+
 
             <div className="container py-5">
 
@@ -264,27 +359,39 @@ export default function AdminPage() {
                     Administracija proizvoda
                 </h1>
 
+
                 {message && (
+
                     <div className="alert alert-success">
                         {message}
                     </div>
+
                 )}
 
+
                 {error && (
+
                     <div className="alert alert-danger">
                         {error}
                     </div>
+
                 )}
+
+
+                {/* FORMA */}
 
                 <div className="card shadow-sm mb-5">
 
                     <div className="card-body">
 
                         <h2 className="h4 mb-4">
+
                             {editingId === null
-                                ? "Dodaj proizvod"
-                                : "Izmeni proizvod"}
+                                ? "Dodavanje proizvoda"
+                                : "Izmena proizvoda"}
+
                         </h2>
+
 
                         <form onSubmit={handleSubmit}>
 
@@ -301,14 +408,17 @@ export default function AdminPage() {
                                     id="productName"
                                     type="text"
                                     className="form-control"
-                                    value={name}
+                                    value={productName}
                                     onChange={event =>
-                                        setName(event.target.value)
+                                        setProductName(
+                                            event.target.value
+                                        )
                                     }
-                                    placeholder="npr. Ethiopia Arabica 250g"
+                                    placeholder="npr. Brazil Santos Arabica 500g"
                                 />
 
                             </div>
+
 
                             <div className="mb-4">
 
@@ -316,10 +426,11 @@ export default function AdminPage() {
                                     Kategorije
                                 </label>
 
+
                                 {categories.length === 0 ? (
 
                                     <div className="alert alert-warning">
-                                        Trenutno nema kategorija.
+                                        Nema dostupnih kategorija.
                                     </div>
 
                                 ) : (
@@ -332,11 +443,11 @@ export default function AdminPage() {
                                         >
 
                                             <input
-                                                className="form-check-input"
-                                                type="checkbox"
                                                 id={`category-${category.id}`}
+                                                type="checkbox"
+                                                className="form-check-input"
                                                 checked={
-                                                    categoryIds.includes(
+                                                    selectedCategories.includes(
                                                         category.id
                                                     )
                                                 }
@@ -363,16 +474,20 @@ export default function AdminPage() {
 
                             </div>
 
+
                             <div className="d-flex gap-2">
 
                                 <button
                                     type="submit"
                                     className="btn btn-primary"
                                 >
+
                                     {editingId === null
                                         ? "Dodaj proizvod"
                                         : "Sacuvaj izmene"}
+
                                 </button>
+
 
                                 {editingId !== null && (
 
@@ -394,14 +509,18 @@ export default function AdminPage() {
 
                 </div>
 
+
+                {/* TABELA */}
+
                 <h2 className="h3 mb-3">
-                    Proizvodi
+                    Lista proizvoda
                 </h2>
+
 
                 {loading ? (
 
                     <div className="alert alert-info">
-                        Ucitavanje...
+                        Ucitavanje proizvoda...
                     </div>
 
                 ) : products.length === 0 ? (
@@ -414,16 +533,19 @@ export default function AdminPage() {
 
                     <div className="table-responsive">
 
-                        <table className="table table-striped align-middle">
+                        <table className="table table-striped table-hover align-middle">
 
                             <thead>
+
                             <tr>
                                 <th>ID</th>
-                                <th>Naziv</th>
+                                <th>Naziv proizvoda</th>
                                 <th>Kategorije</th>
                                 <th>Akcije</th>
                             </tr>
+
                             </thead>
+
 
                             <tbody>
 
@@ -431,11 +553,14 @@ export default function AdminPage() {
 
                                 const productCategories =
                                     product.categoryIds
-                                        ?.map(id => categoryMap.get(id))
+                                        ?.map(id =>
+                                            categoryMap.get(id)
+                                        )
                                         .filter(Boolean)
                                         .join(", ");
 
                                 return (
+
                                     <tr key={product.id}>
 
                                         <td>
@@ -447,7 +572,10 @@ export default function AdminPage() {
                                         </td>
 
                                         <td>
-                                            {productCategories || "Bez kategorije"}
+
+                                            {productCategories ||
+                                                "Bez kategorije"}
+
                                         </td>
 
                                         <td>
@@ -455,6 +583,7 @@ export default function AdminPage() {
                                             <div className="d-flex gap-2">
 
                                                 <button
+                                                    type="button"
                                                     className="btn btn-warning btn-sm"
                                                     onClick={() =>
                                                         handleEdit(product)
@@ -464,9 +593,10 @@ export default function AdminPage() {
                                                 </button>
 
                                                 <button
+                                                    type="button"
                                                     className="btn btn-danger btn-sm"
                                                     onClick={() =>
-                                                        handleDelete(product.id)
+                                                        handleDelete(product)
                                                     }
                                                 >
                                                     Obrisi
@@ -477,6 +607,7 @@ export default function AdminPage() {
                                         </td>
 
                                     </tr>
+
                                 );
                             })}
 
@@ -485,6 +616,7 @@ export default function AdminPage() {
                         </table>
 
                     </div>
+
                 )}
 
             </div>
