@@ -3,6 +3,10 @@
 import {useEffect, useMemo, useState} from "react";
 import Link from "next/link";
 import {get} from "@/core/httpClient";
+import {
+  addToCart,
+  getCartCount
+} from "@/core/cart";
 
 export default function Home() {
 
@@ -10,6 +14,9 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartMessage, setCartMessage] = useState("");
 
   useEffect(() => {
 
@@ -58,6 +65,40 @@ export default function Home() {
 
   }, []);
 
+  useEffect(() => {
+
+    setCartCount(
+        getCartCount()
+    );
+
+  }, []);
+
+  useEffect(() => {
+
+    const storedUser =
+        sessionStorage.getItem("user");
+
+    const token =
+        sessionStorage.getItem("accessToken");
+
+    if (!storedUser || !token) {
+      return;
+    }
+
+    try {
+
+      setCurrentUser(
+          JSON.parse(storedUser)
+      );
+
+    } catch {
+
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("accessToken");
+    }
+
+  }, []);
+
   const categoryMap = useMemo(() => {
 
     return new Map(
@@ -68,6 +109,23 @@ export default function Home() {
     );
 
   }, [categories]);
+
+  const handleLogout = () => {
+
+    sessionStorage.removeItem(
+        "accessToken"
+    );
+
+    sessionStorage.removeItem(
+        "user"
+    );
+
+    sessionStorage.removeItem(
+        "coffeeShopCart"
+    );
+
+    setCurrentUser(null);
+  };
 
   return (
       <main>
@@ -84,12 +142,56 @@ export default function Home() {
 
             <div className="d-flex gap-2">
 
-              <Link
-                  href="/login"
-                  className="btn btn-outline-light"
-              >
-                Prijava
-              </Link>
+              {currentUser ? (
+                  <>
+                    {currentUser.roles?.includes("ADMIN") ? (
+
+                        <Link
+                            href="/admin"
+                            className="btn btn-outline-light"
+                        >
+                          Admin panel
+                        </Link>
+
+                    ) : (
+
+                        <>
+                          <Link
+                              href="/customer"
+                              className="btn btn-outline-light"
+                          >
+                            Moj nalog
+                          </Link>
+
+                          <Link
+                              href="/cart"
+                              className="btn btn-outline-light"
+                          >
+                            Korpa ({cartCount})
+                          </Link>
+                        </>
+
+                    )}
+
+                    <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={handleLogout}
+                    >
+                      Odjavi se
+                    </button>
+                  </>
+
+              ) : (
+
+                  <Link
+                      href="/login"
+                      className="btn btn-outline-light"
+                  >
+                    Prijava
+                  </Link>
+
+              )}
 
             </div>
 
@@ -148,6 +250,16 @@ export default function Home() {
               </div>
           )}
 
+          {cartMessage && (
+
+              <div className="alert alert-success">
+
+                {cartMessage}
+
+              </div>
+
+          )}
+
           <div className="row g-4">
 
             {products.map(product => {
@@ -156,6 +268,42 @@ export default function Home() {
                   product.categoryIds
                       ?.map(id => categoryMap.get(id))
                       .filter(Boolean) ?? [];
+
+              const handleAddToCart = (product) => {
+
+                if (!currentUser) {
+
+                  setCartMessage(
+                      "Morate biti prijavljeni kao kupac da biste dodali proizvod u korpu."
+                  );
+
+                  return;
+                }
+
+                if (currentUser.roles?.includes("ADMIN")) {
+
+                  setCartMessage(
+                      "Administratorski nalog sluzi za upravljanje prodavnicom."
+                  );
+
+                  return;
+                }
+
+                if (!currentUser.roles?.includes("CUSTOMER")) {
+
+                  return;
+                }
+
+                addToCart(product);
+
+                setCartCount(
+                    getCartCount()
+                );
+
+                setCartMessage(
+                    `${product.name} je dodat u korpu.`
+                );
+              };
 
               return (
                   <div
@@ -170,6 +318,10 @@ export default function Home() {
                         <h3 className="card-title h4">
                           {product.name}
                         </h3>
+
+                        <p className="fs-5 fw-bold mb-3">
+                          {Number(product.price).toLocaleString("sr-RS")} RSD
+                        </p>
 
                         <p className="card-text text-secondary mb-2">
                           Kategorije:
@@ -197,6 +349,25 @@ export default function Home() {
                                             </span>
 
                         )}
+
+                        {currentUser &&
+                            currentUser.roles?.includes("CUSTOMER") &&
+                            !currentUser.roles?.includes("ADMIN") && (
+
+                                <div className="mt-4">
+
+                                  <button
+                                      type="button"
+                                      className="btn btn-primary w-100"
+                                      onClick={() =>
+                                          handleAddToCart(product)
+                                      }
+                                  >
+                                    Dodaj u korpu
+                                  </button>
+
+                                </div>
+                            )}
 
                       </div>
 

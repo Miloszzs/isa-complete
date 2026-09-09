@@ -20,6 +20,7 @@ public class ProductMapper {
         return ProductModel.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .price(entity.getPrice())
                 .userId(entity.getUser().getId())
                 .categoryIds(categoryIds)
                 .build();

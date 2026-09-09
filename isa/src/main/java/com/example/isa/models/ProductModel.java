@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import jakarta.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -25,6 +27,13 @@ public class ProductModel {
             message = "Naziv proizvoda moze imati najvise 255 karaktera"
     )
     private String name;
+
+    @NotNull(message = "Cena proizvoda je obavezna")
+    @DecimalMin(
+            value = "0.01",
+            message = "Cena proizvoda mora biti veca od 0"
+    )
+    private BigDecimal price;
 
     @NotNull(message = "Korisnik je obavezan")
     private Integer userId;

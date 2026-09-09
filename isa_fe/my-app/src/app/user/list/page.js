@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 import useListData from "@/hooks/useListData";
 import DataTable from "react-data-table-component";
 import {Button, Spinner} from "reactstrap";
@@ -54,36 +55,63 @@ export default function UserList() {
         }
     };
 
+    const handleLogout = () => {
+
+        sessionStorage.removeItem(
+            "accessToken"
+        );
+
+        sessionStorage.removeItem(
+            "user"
+        );
+
+        sessionStorage.removeItem("coffeeShopCart");
+
+        router.replace("/login");
+    };
+
     const columns = [
+
         {
-            name: "First Name",
-            selector: row => row.firstName
+            name: "Ime",
+            selector: row => row.firstName,
+            sortable: true
         },
+
         {
-            name: "Last Name",
-            selector: row => row.lastName
+            name: "Prezime",
+            selector: row => row.lastName,
+            sortable: true
         },
+
         {
             name: "Email",
-            selector: row => row.email
+            selector: row => row.email,
+            sortable: true
         },
+
         {
-            name: "Phone",
+            name: "Telefon",
             selector: row => row.contactNumber ?? ""
         },
+
         {
-            name: "Actions",
+            name: "Akcije",
+
             cell: row => (
+
                 <div className="d-flex gap-2">
 
                     <Button
                         color="primary"
                         size="sm"
                         onClick={() =>
-                            router.push(`/user/edit/${row.id}`)
+                            router.push(
+                                `/user/edit/${row.id}`
+                            )
                         }
                     >
-                        Edit
+                        Izmeni
                     </Button>
 
                     <Button
@@ -93,7 +121,7 @@ export default function UserList() {
                             handleDelete(row.id)
                         }
                     >
-                        Delete
+                        Obrisi
                     </Button>
 
                 </div>
@@ -110,23 +138,94 @@ export default function UserList() {
     }
 
     return (
-        <DataTable
-            data={data?.users ?? []}
-            columns={columns}
-            striped
-            pagination
-            paginationServer
-            progressPending={loading}
-            paginationTotalRows={data?.totalElements ?? 0}
-            onChangePage={setPageNumber}
-            onChangeRowsPerPage={(size, page) => {
-                setPageSize(size);
-                setPageNumber(page);
-            }}
-            progressComponent={
-                <Spinner color="danger"/>
-            }
-            highlightOnHover
-        />
+
+        <main>
+
+            <nav className="navbar navbar-dark bg-dark">
+
+                <div className="container">
+
+                    <Link
+                        href="/admin"
+                        className="navbar-brand fw-bold"
+                    >
+                        Online Coffee Shop
+                    </Link>
+
+                    <div className="d-flex gap-2">
+
+                        <Link
+                            href="/admin"
+                            className="btn btn-outline-light"
+                        >
+                            Admin panel
+                        </Link>
+
+                        <Link
+                            href="/"
+                            className="btn btn-outline-light"
+                        >
+                            Prodavnica
+                        </Link>
+
+                        <button
+                            type="button"
+                            className="btn btn-danger"
+                            onClick={handleLogout}
+                        >
+                            Odjavi se
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </nav>
+
+
+            <div className="container py-5">
+
+                <h1 className="h3 mb-4">
+                    Lista korisnika
+                </h1>
+
+
+                {error ? (
+
+                    <div className="alert alert-danger">
+
+                        Greska pri ucitavanju korisnika.
+
+                    </div>
+
+                ) : (
+
+                    <DataTable
+                        data={data?.users ?? []}
+                        columns={columns}
+                        striped
+                        pagination
+                        paginationServer
+                        progressPending={loading}
+                        paginationTotalRows={
+                            data?.totalElements ?? 0
+                        }
+                        onChangePage={setPageNumber}
+                        onChangeRowsPerPage={(size, page) => {
+
+                            setPageSize(size);
+                            setPageNumber(page);
+                        }}
+                        progressComponent={
+                            <Spinner color="danger"/>
+                        }
+                        highlightOnHover
+                    />
+
+                )}
+
+            </div>
+
+        </main>
     );
 }

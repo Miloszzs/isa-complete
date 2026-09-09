@@ -73,6 +73,7 @@ public class ProductController {
         Product product = new Product();
 
         product.setName(model.getName().trim());
+        product.setPrice(model.getPrice());
         product.setUser(user.get());
         product.setCategories(new HashSet<>(categories));
 
@@ -126,6 +127,7 @@ public class ProductController {
         Product product = existingProduct.get();
 
         product.setName(model.getName().trim());
+        product.setPrice(model.getPrice());
         product.setUser(user.get());
         product.setCategories(new HashSet<>(categories));
 

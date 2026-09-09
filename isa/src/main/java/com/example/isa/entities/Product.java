@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
@@ -20,6 +21,9 @@ public class Product {
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
+
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)

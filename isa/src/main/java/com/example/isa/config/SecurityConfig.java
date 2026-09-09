@@ -40,6 +40,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/category/create-category-body",
                                 "/product/create-product-body").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                "/order/create").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET,
+                                "/order/my-orders").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET,
+                                "/order/all").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,
                                 "/category/**",
                                 "/product/**").hasRole("ADMIN")

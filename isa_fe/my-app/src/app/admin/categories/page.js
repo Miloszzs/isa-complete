@@ -231,6 +231,7 @@ export default function CategoriesAdminPage() {
 
         sessionStorage.removeItem("accessToken");
         sessionStorage.removeItem("user");
+        sessionStorage.removeItem("coffeeShopCart");
 
         router.replace("/login");
     };

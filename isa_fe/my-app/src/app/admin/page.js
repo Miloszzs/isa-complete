@@ -13,6 +13,7 @@ export default function AdminPage() {
     const [categories, setCategories] = useState([]);
 
     const [productName, setProductName] = useState("");
+    const [productPrice, setProductPrice] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
 
     const [editingId, setEditingId] = useState(null);
@@ -117,6 +118,7 @@ export default function AdminPage() {
     const resetForm = () => {
 
         setProductName("");
+        setProductPrice("");
         setSelectedCategories([]);
         setEditingId(null);
     };
@@ -157,10 +159,17 @@ export default function AdminPage() {
             setError("Naziv proizvoda je obavezan.");
             return;
         }
+        if (!productPrice || Number(productPrice) <= 0) {
+
+            setError("Cena proizvoda mora biti veca od 0.");
+            return;
+        }
 
         const productData = {
 
             name: productName.trim(),
+
+            price: Number(productPrice),
 
             userId: adminUserId,
 
@@ -227,6 +236,8 @@ export default function AdminPage() {
 
         setProductName(product.name);
 
+        setProductPrice(product.price);
+
         setSelectedCategories(
             product.categoryIds ?? []
         );
@@ -291,6 +302,7 @@ export default function AdminPage() {
 
         sessionStorage.removeItem("accessToken");
         sessionStorage.removeItem("user");
+        sessionStorage.removeItem("coffeeShopCart");
 
         router.replace("/login");
     };
@@ -336,6 +348,13 @@ export default function AdminPage() {
                             className="btn btn-outline-light"
                         >
                             Korisnici
+                        </Link>
+
+                        <Link
+                            href="/admin/orders"
+                            className="btn btn-outline-light"
+                        >
+                            Porudzbine
                         </Link>
 
                         <button
@@ -415,6 +434,30 @@ export default function AdminPage() {
                                         )
                                     }
                                     placeholder="npr. Brazil Santos Arabica 500g"
+                                />
+
+                            </div>
+
+                            <div className="mb-3">
+
+                                <label
+                                    htmlFor="productPrice"
+                                    className="form-label"
+                                >
+                                    Cena (RSD)
+                                </label>
+
+                                <input
+                                    id="productPrice"
+                                    type="number"
+                                    min="1"
+                                    step="0.01"
+                                    className="form-control"
+                                    value={productPrice}
+                                    onChange={event =>
+                                        setProductPrice(event.target.value)
+                                    }
+                                    placeholder="npr. 1299"
                                 />
 
                             </div>
@@ -540,6 +583,7 @@ export default function AdminPage() {
                             <tr>
                                 <th>ID</th>
                                 <th>Naziv proizvoda</th>
+                                <th>Cena</th>
                                 <th>Kategorije</th>
                                 <th>Akcije</th>
                             </tr>
@@ -569,6 +613,10 @@ export default function AdminPage() {
 
                                         <td>
                                             {product.name}
+                                        </td>
+
+                                        <td>
+                                            {Number(product.price).toLocaleString("sr-RS")} RSD
                                         </td>
 
                                         <td>
