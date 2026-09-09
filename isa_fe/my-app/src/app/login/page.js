@@ -48,7 +48,7 @@ export default function Login() {
             resetField("password");
 
             if (roles.includes("ADMIN")) {
-                router.replace("/user/list");
+                router.replace("/admin");
             } else {
                 setSuccessMessage(`Uspešno ste prijavljeni kao ${email}.`);
             }
