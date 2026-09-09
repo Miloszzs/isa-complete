@@ -35,13 +35,17 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/user/create-user-body").permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/category/get-category-list").permitAll()
+                                "/category/get-category-list",
+                                "/product/get-product-list").permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/category/create-category-body").hasRole("ADMIN")
+                                "/category/create-category-body",
+                                "/product/create-product-body").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,
-                                "/category/{id}").hasRole("ADMIN")
+                                "/category/**",
+                                "/product/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,
-                                "/category/{id}").hasRole("ADMIN")
+                                "/category/**",
+                                "/product/**").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/role/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/auth/validate",
