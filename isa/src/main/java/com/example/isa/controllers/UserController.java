@@ -82,6 +82,12 @@ public class UserController {
                     .body("Neispravni podaci korisnika");
         }
 
+        if (model.getId() != null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("ID se ne salje pri registraciji");
+        }
+
         if (model.getPassword() == null ||
                 model.getPassword().isBlank()) {
 
