@@ -34,6 +34,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login",
                                 "/user/create-user-body").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/category/get-category-list").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/category/create-category-body").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,
+                                "/category/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/category/{id}").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/role/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/auth/validate",
